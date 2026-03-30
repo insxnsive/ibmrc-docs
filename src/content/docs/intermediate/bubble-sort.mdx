@@ -1,0 +1,201 @@
+---
+title: Bubble Sort
+description: Entenda e implemente o algoritmo de ordenação Bubble Sort em C.
+sidebar:
+    badge:
+        text: ★ Novidade
+        variant: tip
+---
+
+import BubbleSortVisualizer from '../../../components/BubbleSortVisualizer.astro';
+
+Imagina que você tem uma fila de pessoas organizadas por altura, mas todas estão fora de ordem. O que você faz? Começa comparando **duas pessoas lado a lado**: se a da esquerda for mais alta que a da direita, troca elas de lugar. Depois avança para o próximo par e repete. Quando chega no final da fila, volta pro começo e faz tudo de novo — até que ninguém mais precise trocar.
+
+**Isso é o Bubble Sort.** O nome vem de "bolha" porque os maiores valores vão "subindo" até o final do array, igual bolhas na água.
+
+:::caution[Pré-requisito importante]
+Antes de continuar, é altamente recomendado dominar:
+
+- [Arrays](/intermediate/arrays/)
+- [Controle de Fluxo (for/while)](/basics/control-flow/)
+
+Sem isso, o Bubble Sort pode parecer muito mais difícil do que realmente é.
+:::
+
+## A Ideia em 3 Passos
+
+| Passo | O que acontece |
+|:-----:|----------------|
+| 1 | Compara dois elementos vizinhos |
+| 2 | Se o da esquerda for **maior**, troca os dois de lugar |
+| 3 | Repete até nenhuma troca ser necessária |
+
+Simples assim. Sem mágica.
+
+## Vamos Construir Passo a Passo
+
+Antes de sair escrevendo código, vamos pensar no que precisamos:
+
+- Um **array** com valores desordenados
+- Um **loop externo** que controla quantas "passagens" fazemos pela fila
+- Um **loop interno** que faz as comparações e trocas
+- Uma **variável temporária** para guardar o valor durante a troca
+
+### Por que dois loops?
+
+O loop externo garante que a gente passe pelo array várias vezes. Cada passagem coloca **pelo menos um elemento** na posição certa (o maior vai pro final). Então, se temos `n` elementos, no pior caso precisamos de `n - 1` passagens.
+
+O loop interno percorre os pares vizinhos e faz as comparações.
+
+:::tip
+Pense no loop externo como "rodadas" e no loop interno como "o trabalho de cada rodada".
+:::
+
+## O Código Completo
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    int Tam[] = {5, 3, 8, 1, 4, 2, 7, 6};
+    int n = sizeof(Tam) / sizeof(Tam[0]);
+
+    // Loop externo: cada passagem garante 1 elemento no lugar certo
+    for (int i = 0; i < n - 1; i++) {
+
+        // Loop interno: compara vizinhos
+        for (int j = 0; j < n - 1 - i; j++) {
+
+            if (Tam[j] > Tam[j + 1]) {
+                // Troca usando variável temporária
+                int tmp = Tam[j];
+                Tam[j] = Tam[j + 1];
+                Tam[j + 1] = tmp;
+            }
+        }
+    }
+
+    // Imprime o array ordenado
+    for (int i = 0; i < n; i++) {
+        printf("%d ", Tam[i]);
+    }
+    printf("\n");
+
+    return 0;
+}
+```
+
+## Entendendo Cada Parte
+
+### O array e o tamanho
+
+```c
+int Tam[] = {5, 3, 8, 1, 4, 2, 7, 6};
+int n = sizeof(Tam) / sizeof(Tam[0]);
+```
+
+Nada novo aqui — declaramos o array e calculamos o tamanho usando o truque do `sizeof` que você já viu em [Arrays](/intermediate/arrays/).
+
+### A comparação e a troca
+
+```c
+if (Tam[j] > Tam[j + 1]) {
+    int tmp = Tam[j];
+    Tam[j] = Tam[j + 1];
+    Tam[j + 1] = tmp;
+}
+```
+
+Esse é o coração do Bubble Sort. Vamos acompanhar com um exemplo concreto:
+
+Imagine que `Tam[j] = 8` e `Tam[j+1] = 1`:
+
+| Etapa | O que acontece | `tmp` | `Tam[j]` | `Tam[j+1]` |
+|:-----:|----------------|:-----:|:---------:|:-----------:|
+| 1 | `tmp = Tam[j]` | **8** | 8 | 1 |
+| 2 | `Tam[j] = Tam[j+1]` | 8 | **1** | 1 |
+| 3 | `Tam[j+1] = tmp` | 8 | 1 | **8** |
+
+Pronto! O `8` e o `1` trocaram de lugar. Sem a variável `tmp`, a gente perderia o valor original de `Tam[j]` no passo 2.
+
+:::caution[Atenção!]
+Nunca tente trocar dois valores sem uma variável temporária:
+```c
+// ERRADO — o valor de Tam[j] é perdido!
+Tam[j]     = Tam[j + 1];
+Tam[j + 1] = Tam[j]; // isso agora copia o mesmo valor
+```
+:::
+
+### Por que `n - 1 - i` no loop interno?
+
+Depois de cada passagem completa, o maior elemento já está na posição final. Não faz sentido comparar ele de novo. Então a cada rodada (`i`), o loop interno faz **uma comparação a menos**.
+
+| Passagem (`i`) | Comparações | Elemento fixado |
+|:--------------:|:-----------:|:---------------:|
+| 0 | 7 | `Tam[7]` fica no lugar |
+| 1 | 6 | `Tam[6]` fica no lugar |
+| 2 | 5 | `Tam[5]` fica no lugar |
+| ... | ... | ... |
+
+## Otimização: Parar Cedo
+
+Se em uma passagem inteira nenhuma troca aconteceu, o array já está ordenado. Podemos parar antes:
+
+```c
+for (int i = 0; i < n - 1; i++) {
+    int trocou = 0; // flag
+
+    for (int j = 0; j < n - 1 - i; j++) {
+        if (Tam[j] > Tam[j + 1]) {
+            int tmp = Tam[j];
+            Tam[j] = Tam[j + 1];
+            Tam[j + 1] = tmp;
+            trocou = 1;
+        }
+    }
+
+    if (!trocou) break; // já está ordenado, para!
+}
+```
+
+:::note[Você sabia?]
+Com essa otimização, se o array já estiver **completamente ordenado**, o Bubble Sort faz apenas **uma passagem** e para. Sem ela, faria todas as `n - 1` passagens à toa.
+:::
+
+## Complexidade
+
+Não se assuste com a palavra. Complexidade aqui é só uma forma de medir "quão rápido ou devagar" um algoritmo é.
+
+| Caso | Complexidade | Quando acontece |
+|------|:------------:|-----------------|
+| Melhor | O(n) | Array já está ordenado (com a otimização) |
+| Médio | O(n²) | Elementos em ordem aleatória |
+| Pior | O(n²) | Array em ordem inversa |
+
+O Bubble Sort **não é o mais rápido** dos algoritmos de ordenação, mas é o mais fácil de entender. É perfeito para aprender a lógica de ordenação antes de partir para algoritmos mais complexos.
+
+## Visualizador Interativo
+
+Veja o Bubble Sort acontecendo passo a passo. Use os botões para avançar, voltar ou rodar automaticamente:
+
+<BubbleSortVisualizer />
+
+### Código do Visualizador (Mesma Lógica)
+
+```c
+for (int i = 0; i < n - 1; i++) {
+    int trocou = 0;
+
+    for (int j = 0; j < n - 1 - i; j++) {
+        if (Tam[j] > Tam[j + 1]) {
+            int tmp = Tam[j];
+            Tam[j] = Tam[j + 1];
+            Tam[j + 1] = tmp;
+            trocou = 1;
+        }
+    }
+
+    if (!trocou) break;
+}
+```

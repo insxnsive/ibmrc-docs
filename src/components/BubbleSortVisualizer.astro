@@ -1,0 +1,122 @@
+---
+// Interactive Bubble Sort step-by-step visualizer
+---
+
+<style>
+  :global(#bs * ) { box-sizing: border-box; }
+  :global(#bs .bs-col) { display: flex; flex-direction: column; align-items: center; width: 56px; }
+  :global(#bs .bs-bar) { width: 56px; border-radius: 4px 4px 0 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 5px; transition: background-color .25s; }
+  :global(#bs .bs-ilbl) { width: 56px; text-align: center; font-size: 11px; color: var(--sl-color-gray-4); padding-top: 3px; }
+  :global(#bs .bs-btn) { width: 120px; height: 36px; font-size: 13px; padding: 0 12px; border-radius: 0.5rem; border: 0.5px solid var(--sl-color-gray-5); background: transparent; color: var(--sl-color-white); cursor: pointer; text-align: center; line-height: 1; overflow: hidden; }
+  :global(#bs .bs-btn:hover:not(:disabled)) { background: var(--sl-color-gray-6); }
+  :global(#bs .bs-btn:disabled) { opacity: .4; cursor: default; }
+  :global(#bs .lsq) { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+</style>
+
+<div id="bs" style="padding:0.5rem 0;">
+  <div id="bs-chart" style="display:flex;gap:4px;justify-content:center;align-items:flex-end;margin-bottom:14px;"></div>
+  <div id="bs-msg" style="text-align:center;min-height:42px;font-size:13px;color:var(--sl-color-gray-3);margin:0 12px 12px;line-height:1.5;"></div>
+  <div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px;flex-wrap:wrap;">
+    <button class="bs-btn" id="bs-rst" style="display:inline-block;box-sizing:border-box;width:120px;height:36px;font-size:13px;padding:0 12px;line-height:36px;overflow:hidden;">↺ Reiniciar</button>
+    <button class="bs-btn" id="bs-prv" style="display:inline-block;box-sizing:border-box;width:120px;height:36px;font-size:13px;padding:0 12px;line-height:36px;overflow:hidden;">‹ Anterior</button>
+    <button class="bs-btn" id="bs-ply" style="display:inline-block;box-sizing:border-box;width:120px;height:36px;font-size:13px;padding:0 12px;line-height:36px;overflow:hidden;">▶ Auto</button>
+    <button class="bs-btn" id="bs-nxt" style="display:inline-block;box-sizing:border-box;width:120px;height:36px;font-size:13px;padding:0 12px;line-height:36px;overflow:hidden;">Próximo ›</button>
+  </div>
+  <div style="text-align:center;font-size:12px;color:var(--sl-color-gray-4);margin-bottom:14px;">
+    Passo <span id="bs-cn">0</span> / <span id="bs-tt">0</span> &nbsp;·&nbsp; Passagem: <span id="bs-ps">—</span>
+  </div>
+  <div style="border-top:0.5px solid var(--sl-color-gray-5);margin-bottom:14px;"></div>
+  <div style="display:flex;gap:14px;justify-content:center;margin-top:14px;font-size:12px;color:var(--sl-color-gray-3);flex-wrap:wrap;">
+    <span><span class="lsq" style="background:#888780;"></span>Normal</span>
+    <span><span class="lsq" style="background:#5B8DB8;"></span>Comparando</span>
+    <span><span class="lsq" style="background:#2E6DA4;"></span>Trocando</span>
+    <span><span class="lsq" style="background:#1D9E75;"></span>Ordenado</span>
+  </div>
+</div>
+
+<script is:inline>
+(function(){
+  var INIT=[5,3,8,1,4,2,7,6], N=INIT.length;
+  var MAX_H=140,MIN_H=38,MAX_V=Math.max.apply(null,INIT);
+  function bh(v){return MIN_H+(v/MAX_V)*(MAX_H-MIN_H);}
+  var C={n:'#888780',c:'#5B8DB8',s:'#2E6DA4',ok:'#1D9E75'};
+
+  var steps=[];
+  var a=INIT.slice();
+  for(var i=0;i<N-1;i++){
+    var sw=false;
+    for(var j=0;j<N-1-i;j++){
+      steps.push({t:'cmp',a:a.slice(),j:j,ns:i,p:i+1});
+      if(a[j]>a[j+1]){
+        var oj=a[j],oj1=a[j+1];
+        var temp=a[j]; a[j]=a[j+1]; a[j+1]=temp;
+        steps.push({t:'swp',a:a.slice(),j:j,ns:i,p:i+1,oj:oj,oj1:oj1});
+        sw=true;
+      }
+    }
+    steps.push({t:'end',a:a.slice(),j:-1,ns:i+1,p:i+1});
+    if(!sw)break;
+  }
+  steps.push({t:'done',a:a.slice(),j:-1,ns:N,p:'—'});
+
+  function msg(s){
+    if(s.t==='cmp'){
+      var gt=s.a[s.j]>s.a[s.j+1];
+      return 'Passagem '+s.p+' — comparando <b>Tam['+s.j+'] = '+s.a[s.j]+'</b> com <b>Tam['+(s.j+1)+'] = '+s.a[s.j+1]+'</b><br>'+(gt?'<span style="color:#2E6DA4">&#9654; maior à esquerda → precisam ser trocados</span>':'<span style="color:#1D9E75">&#9654; já em ordem → sem troca</span>');
+    }
+    if(s.t==='swp')return 'Trocando <b>'+s.oj+'</b> ↔ <b>'+s.oj1+'</b> — o maior ('+s.oj+') avança para a posição ['+(s.j+1)+']';
+    if(s.t==='end')return 'Passagem '+s.p+' concluída — <b>Tam['+(N-s.ns)+'] = '+s.a[N-s.ns]+'</b> está na posição definitiva';
+    if(s.t==='done')return '<span style="color:#1D9E75">Vetor completamente ordenado!</span>';
+    return'';
+  }
+
+  function clr(i,s){
+    if(s.t==='done')return C.ok;
+    if(i>=N-s.ns)return C.ok;
+    if((s.t==='cmp'||s.t==='swp')&&(i===s.j||i===s.j+1))return s.t==='swp'?C.s:C.c;
+    return C.n;
+  }
+
+  var chartEl=document.getElementById('bs-chart');
+  var msgEl=document.getElementById('bs-msg');
+  var cnEl=document.getElementById('bs-cn');
+  var ttEl=document.getElementById('bs-tt');
+  var psEl=document.getElementById('bs-ps');
+  var btnP=document.getElementById('bs-prv');
+  var btnN=document.getElementById('bs-nxt');
+  var btnPl=document.getElementById('bs-ply');
+  var btnR=document.getElementById('bs-rst');
+
+  ttEl.textContent=steps.length-1;
+
+  var cur=0,playing=false,timer=null;
+
+  function render(){
+    var s=steps[cur];
+    chartEl.innerHTML=s.a.map(function(v,i){
+      return '<div style="display:flex;flex-direction:column;align-items:center;width:56px;">'
+        +'<div style="width:56px;height:'+bh(v).toFixed(0)+'px;background:'+clr(i,s)+';border-radius:4px 4px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:5px;transition:background-color .25s;">'
+        +'<span style="font-size:12px;font-weight:500;color:#fff;">'+v+'</span></div>'
+        +'<div style="width:56px;text-align:center;font-size:11px;color:var(--sl-color-gray-4);padding-top:3px;">['+i+']</div>'
+        +'</div>';
+    }).join('');
+    msgEl.innerHTML=msg(s);
+    cnEl.textContent=cur; psEl.textContent=s.p;
+    btnP.disabled=cur===0; btnN.disabled=cur>=steps.length-1;
+  }
+
+  function mv(d){cur=Math.max(0,Math.min(steps.length-1,cur+d));render();}
+  function stop(){playing=false;btnPl.textContent='▶ Auto';clearInterval(timer);timer=null;}
+  function go(){
+    if(cur>=steps.length-1)cur=0;
+    playing=true;btnPl.textContent='⏸ Pausar';
+    timer=setInterval(function(){if(cur>=steps.length-1){stop();return;}mv(1);},680);
+  }
+
+  btnN.onclick=function(){stop();mv(1);};
+  btnP.onclick=function(){stop();mv(-1);};
+  btnR.onclick=function(){stop();cur=0;render();};
+  btnPl.onclick=function(){return playing?stop():go();};
+  render();
+})();
+</script>
