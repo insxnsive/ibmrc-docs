@@ -1,3 +1,10 @@
+# IBMR C Docs
+
+This is a Repo for the website: https://ibmrc.discloud.app
+
+> It features tips and exercises so you can learn C. Made using Starlight Astro + Vite this project aims to teach the average programmer.
+The following is the README.md from Starlight Astro, read it if you need any help in adapting this code or creating pull requests.
+
 # Starlight Starter Kit: Basics
 
 [![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
